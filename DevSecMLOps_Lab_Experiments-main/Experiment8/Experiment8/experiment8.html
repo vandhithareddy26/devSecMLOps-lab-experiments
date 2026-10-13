@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Experiment 8 | Vulnerability Scanning</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Inter, Arial, sans-serif;
+    background: #080a0f;
+    color: #e8edf3;
+    line-height: 1.6;
+}
+
+header {
+    padding: 30px 7%;
+    background: #0d1118;
+    border-bottom: 1px solid #272d37;
+}
+
+.logo {
+    color: #ffb84d;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+header h1 {
+    margin-top: 10px;
+    font-size: 36px;
+}
+
+header p {
+    color: #929dab;
+}
+
+.container {
+    width: 86%;
+    max-width: 1300px;
+    margin: auto;
+}
+
+section {
+    padding: 55px 0;
+}
+
+.badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: #352612;
+    color: #ffb84d;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.hero {
+    padding: 80px 0;
+}
+
+.hero h2 {
+    font-size: 52px;
+    line-height: 1.1;
+    max-width: 900px;
+}
+
+.hero h2 span {
+    color: #ffb84d;
+}
+
+.hero p {
+    max-width: 760px;
+    margin-top: 20px;
+    color: #99a4b2;
+    font-size: 18px;
+}
+
+.section-title {
+    font-size: 27px;
+    margin-bottom: 12px;
+}
+
+.section-description {
+    color: #8994a2;
+    margin-bottom: 30px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.stat {
+    background: #10151d;
+    border: 1px solid #252d38;
+    border-radius: 15px;
+    padding: 28px;
+}
+
+.stat h3 {
+    font-size: 38px;
+}
+
+.stat p {
+    color: #8994a2;
+}
+
+.low {
+    color: #4db6ff;
+}
+
+.medium {
+    color: #ffb84d;
+}
+
+.high {
+    color: #ff596d;
+}
+
+.workflow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.step {
+    padding: 20px 25px;
+    background: #111720;
+    border: 1px solid #2b3440;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.step strong {
+    display: block;
+    color: #ffb84d;
+    margin-bottom: 5px;
+}
+
+.arrow {
+    color: #687482;
+    font-size: 22px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #10151d;
+    overflow: hidden;
+    border-radius: 14px;
+}
+
+th, td {
+    padding: 16px;
+    border-bottom: 1px solid #252d38;
+    text-align: left;
+}
+
+th {
+    color: #ffb84d;
+    background: #151b24;
+}
+
+td {
+    color: #b6c0cb;
+}
+
+.severity {
+    font-weight: bold;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.card {
+    background: #10151d;
+    border: 1px solid #252d38;
+    border-radius: 15px;
+    padding: 25px;
+}
+
+.card h3 {
+    margin-bottom: 10px;
+}
+
+.card p {
+    color: #929dab;
+}
+
+.terminal {
+    background: #05070a;
+    border: 1px solid #252d38;
+    border-radius: 14px;
+    padding: 25px;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    color: #b7f3cd;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.danger {
+    color: #ff596d;
+}
+
+.warning {
+    color: #ffb84d;
+}
+
+.success {
+    color: #54dc8c;
+}
+
+.comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.before,
+.after {
+    padding: 30px;
+    border-radius: 15px;
+    border: 1px solid #252d38;
+}
+
+.before {
+    background: #1b0f13;
+}
+
+.after {
+    background: #0d1b14;
+}
+
+.before h3 {
+    color: #ff596d;
+}
+
+.after h3 {
+    color: #54dc8c;
+}
+
+.fix-list {
+    margin-top: 15px;
+    padding-left: 20px;
+    color: #aab5c0;
+}
+
+footer {
+    border-top: 1px solid #252d38;
+    padding: 30px;
+    text-align: center;
+    color: #687482;
+}
+
+@media(max-width: 800px) {
+    .stats,
+    .card-grid,
+    .comparison {
+        grid-template-columns: 1fr;
+    }
+
+    .hero h2 {
+        font-size: 38px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">DEVSEC MLOPS LAB</div>
+    <h1>Experiment 08</h1>
+    <p>Vulnerability Scanning in the ML Pipeline</p>
+</header>
+
+<main class="container">
+
+<section class="hero">
+
+    <span class="badge">SAST • BANDIT • VULNERABILITY MANAGEMENT</span>
+
+    <h2>
+        Detect and Remediate
+        <span>ML Security Vulnerabilities</span>
+    </h2>
+
+    <p>
+        Static Application Security Testing using Bandit to identify
+        insecure Python code, analyze severity and confidence, apply
+        remediation, and verify the fixed source code.
+    </p>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Initial Security Scan</h2>
+
+    <p class="section-description">
+        Bandit was executed against the vulnerable ML utility.
+    </p>
+
+    <div class="stats">
+
+        <div class="stat">
+            <h3 class="low">3</h3>
+            <p>Low Severity</p>
+        </div>
+
+        <div class="stat">
+            <h3 class="medium">1</h3>
+            <p>Medium Severity</p>
+        </div>
+
+        <div class="stat">
+            <h3 class="high">2</h3>
+            <p>High Severity</p>
+        </div>
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">SAST Workflow</h2>
+
+    <div class="workflow">
+
+        <div class="step">
+            <strong>01</strong>
+            Source Code
+        </div>
+
+        <div class="arrow">→</div>
+
+        <div class="step">
+            <strong>02</strong>
+            Bandit Scan
+        </div>
+
+        <div class="arrow">→</div>
+
+        <div class="step">
+            <strong>03</strong>
+            Findings
+        </div>
+
+        <div class="arrow">→</div>
+
+        <div class="step">
+            <strong>04</strong>
+            Remediation
+        </div>
+
+        <div class="arrow">→</div>
+
+        <div class="step">
+            <strong>05</strong>
+            Re-Scan
+        </div>
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Vulnerabilities Detected</h2>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Vulnerability</th>
+                <th>Severity</th>
+                <th>Remediation</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <tr>
+                <td>B301</td>
+                <td>Unsafe pickle.load()</td>
+                <td class="severity medium">Medium</td>
+                <td>Replace with JSON</td>
+            </tr>
+
+            <tr>
+                <td>B602</td>
+                <td>subprocess shell=True</td>
+                <td class="severity high">High</td>
+                <td>Use shell=False</td>
+            </tr>
+
+            <tr>
+                <td>B324</td>
+                <td>MD5 hashing</td>
+                <td class="severity high">High</td>
+                <td>Use SHA-256</td>
+            </tr>
+
+            <tr>
+                <td>B105</td>
+                <td>Hard-coded password</td>
+                <td class="severity low">Low</td>
+                <td>Environment variable</td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Bandit Scan Output</h2>
+
+    <div class="terminal">
+
+$ bandit -r exp8_vuln_sample.py
+
+Test results:
+
+B403 - pickle import
+B404 - subprocess import
+B301 - pickle.load
+B602 - subprocess shell=True
+B324 - MD5 usage
+B105 - hard-coded password
+
+<span class="warning">Undefined : 0</span>
+<span class="low">Low       : 3</span>
+<span class="medium">Medium    : 1</span>
+<span class="danger">High      : 2</span>
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Security Remediation</h2>
+
+    <div class="card-grid">
+
+        <div class="card">
+            <h3>B301 — Unsafe Deserialization</h3>
+            <p>
+                Unsafe pickle deserialization was removed and replaced
+                with JSON loading.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>B602 — Command Injection Risk</h3>
+            <p>
+                shell=True was removed and subprocess execution uses
+                shell=False.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>B324 — Weak Cryptography</h3>
+            <p>
+                MD5 was replaced with the stronger SHA-256 hashing
+                algorithm.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>B105 — Hard-coded Secret</h3>
+            <p>
+                The hard-coded password was removed and replaced with
+                an environment variable.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Before vs After</h2>
+
+    <div class="comparison">
+
+        <div class="before">
+
+            <h3>❌ Vulnerable Code</h3>
+
+            <ul class="fix-list">
+                <li>pickle.load()</li>
+                <li>subprocess.call(..., shell=True)</li>
+                <li>MD5 hashing</li>
+                <li>Hard-coded password</li>
+                <li>High severity findings</li>
+            </ul>
+
+        </div>
+
+        <div class="after">
+
+            <h3>✓ Secured Code</h3>
+
+            <ul class="fix-list">
+                <li>JSON loading</li>
+                <li>shell=False</li>
+                <li>SHA-256</li>
+                <li>Environment variable</li>
+                <li>High/Medium findings eliminated</li>
+            </ul>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Fixed Scan</h2>
+
+    <div class="terminal">
+
+$ python3 exp8_fixed_sample.py
+
+[FIXED] Unsafe pickle deserialization removed.
+[FIXED] shell=True removed.
+[FIXED] MD5 replaced with SHA-256.
+[FIXED] Hard-coded password removed.
+
+All security vulnerabilities have been remediated.
+
+
+$ bandit -r exp8_fixed_sample.py
+
+<span class="low">Low       : 2</span>
+<span class="medium">Medium    : 0</span>
+<span class="danger">High      : 0</span>
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Final Security Status</h2>
+
+    <div class="stats">
+
+        <div class="stat">
+            <h3 class="low">2</h3>
+            <p>Low Findings</p>
+        </div>
+
+        <div class="stat">
+            <h3 class="medium">0</h3>
+            <p>Medium Findings</p>
+        </div>
+
+        <div class="stat">
+            <h3 class="high">0</h3>
+            <p>High Findings</p>
+        </div>
+
+    </div>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Result</h2>
+
+    <div class="card">
+        <p>
+            Bandit successfully detected vulnerabilities, and after
+            remediation, High and Medium severity issues were reduced
+            to zero.
+        </p>
+    </div>
+
+</section>
+
+<section>
+
+    <h2 class="section-title">Conclusion</h2>
+
+    <div class="card">
+        <p>
+            Bandit helps detect and fix security vulnerabilities early
+            using Static Application Security Testing.
+        </p>
+    </div>
+
+</section>
+
+</main>
+
+<footer>
+    DevSecMLOps Laboratory • Experiment 08 • Vulnerability Scanning
+</footer>
+
+</body>
+</html>
